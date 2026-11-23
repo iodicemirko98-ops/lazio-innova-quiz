@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lazio Innova">
+<meta name="theme-color" content="#16202a">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preselettiva Lazio Innova</title>
+<style>
+/* Layout: colonna singola da 760px, intestazione con conto alla rovescia, schede a tab, quiz a schermo intero della colonna */
+:root{
+  --bg:#f2f4f6; --surface:#ffffff; --ink:#15202b; --muted:#5a6673; --line:#d9dfe5;
+  --accent:#0b6e6a; --accent-ink:#ffffff; --accent-soft:#dff0ee;
+  --good:#17803d; --good-soft:#e1f3e7; --bad:#b42318; --bad-soft:#fbe6e3; --warn:#9a5b00; --warn-soft:#fbefd5;
+  --display:"IBM Plex Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f161d; --surface:#18222c; --ink:#e8edf2; --muted:#98a6b3; --line:#2b3947;
+    --accent:#4fc3bd; --accent-ink:#06211f; --accent-soft:#143634;
+    --good:#58c27d; --good-soft:#12301f; --bad:#f08a80; --bad-soft:#3a1c19; --warn:#e8b25a; --warn-soft:#3a2c10;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --surface:#18222c; --ink:#e8edf2; --muted:#98a6b3; --line:#2b3947;
+  --accent:#4fc3bd; --accent-ink:#06211f; --accent-soft:#143634;
+  --good:#58c27d; --good-soft:#12301f; --bad:#f08a80; --bad-soft:#3a1c19; --warn:#e8b25a; --warn-soft:#3a2c10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 64px}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:16px;border-bottom:2px solid var(--ink);margin-bottom:16px}
+h1{font-family:var(--display);font-size:1.6rem;line-height:1.15;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+.count{font-family:var(--mono);text-align:right}
+.count b{font-size:1.9rem;display:block;line-height:1}
+.count span{font-size:.78rem;color:var(--muted);font-family:var(--body)}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
+nav.tabs button{font:inherit;font-weight:500;padding:9px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,summary:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.card h2{font-family:var(--display);font-size:1.15rem;margin:0 0 8px}
+.card h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 6px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.btn{font:inherit;font-weight:600;padding:10px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+select,.field{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+label.inline{display:inline-flex;gap:8px;align-items:center}
+.topic{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;width:100%;font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.topic:hover{border-color:var(--accent)}
+.topic small{color:var(--muted);font-family:var(--mono)}
+.group-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 0 8px}
+.pill{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;font-family:var(--mono);font-size:.9rem}
+.timer{font-weight:600;font-size:1.1rem}
+.timer.low{color:var(--bad)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.qtext{font-family:var(--display);font-size:1.15rem;line-height:1.4;margin:6px 0 14px;white-space:pre-line}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;font:inherit;padding:11px 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.opt .k{font-family:var(--mono);font-weight:600;min-width:1.4em;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)}
+.opt.ko{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.expl{margin-top:12px;padding:12px 14px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:.95rem}
+.nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin-top:16px}
+.map{display:flex;flex-wrap:wrap;gap:4px;margin-top:14px}
+.map button{font-family:var(--mono);font-size:.78rem;width:34px;height:30px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer;padding:0}
+.map button.done{background:var(--accent-soft);border-color:var(--accent)}
+.map button.flag{border-color:var(--warn);box-shadow:inset 0 -3px 0 var(--warn)}
+.map button.cur{outline:2px solid var(--ink)}
+.score{font-family:var(--mono);font-size:3rem;font-weight:600;line-height:1}
+.table{width:100%;border-collapse:collapse;font-size:.92rem}
+.table th,.table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.table th{color:var(--muted);font-weight:500}
+.scroll{overflow-x:auto}
+details.rev{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--surface)}
+details.rev summary{cursor:pointer;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+details.rev .in{padding:0 12px 12px}
+/* ripasso */
+.sch ul{margin:6px 0 0;padding-left:20px}
+.sch li{margin:4px 0}
+.sch a{color:var(--accent)}
+.note{font-size:.88rem;color:var(--muted)}
+.empty{color:var(--muted);padding:12px 0}
+/* manuale e finestra di consultazione */
+.btn.sm{padding:6px 11px;font-size:.85rem}
+.man-tools{margin-bottom:10px}
+.man-tools .field{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{font:inherit;font-size:.82rem;padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-current="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.read::after{content:" \2713";color:var(--good);font-weight:600}
+.chip[aria-current="true"].read::after{color:inherit}
+.hit{display:block;width:100%;text-align:left;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;margin-bottom:6px}
+.hit:hover{border-color:var(--accent)}
+.hit small{display:block;color:var(--muted);margin-top:2px;font-size:.84rem}
+.man{line-height:1.6}
+.man h3{font-family:var(--display);font-size:1.05rem;text-transform:none;letter-spacing:0;color:var(--ink);margin:22px 0 6px}
+.man p{margin:8px 0}
+.man ul,.man ol{padding-left:22px;margin:8px 0}
+.man li{margin:4px 0}
+.man a{color:var(--accent)}
+.man code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+.man .lead{font-size:1.02rem;color:var(--muted);margin:0 0 14px}
+.man .key{border-left:4px solid var(--warn);background:var(--warn-soft);padding:8px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.man .ex{border-left:4px solid var(--accent);background:var(--accent-soft);padding:8px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.man .note{font-size:.88rem;color:var(--muted)}
+.man .table{margin:8px 0;font-size:.85rem}
+.man .table td,.man .table th{vertical-align:top;padding:6px 6px;hyphens:auto;overflow-wrap:break-word}
+.man mark{background:var(--warn-soft);color:inherit;outline:1px solid var(--warn);border-radius:2px}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,16,22,.62);overflow:auto;padding:16px}
+.sheet{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 18px 20px}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;background:var(--surface);padding:12px 0;margin-bottom:6px;border-bottom:1px solid var(--line);z-index:1}
+.expl .btn{margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .25s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Preselettiva Lazio Innova</h1>
+      <div class="sub">Operatore junior, gestione e controllo di avvisi di finanziamento. Prova del 1 dicembre 2026, Roma Eur.</div>
+    </div>
+    <div class="count"><b id="days">–</b><span>giorni alla prova</span></div>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+<script src="questions.js"></script>
+<script src="q-tech.js"></script>
+<script src="q-logic.js"></script>
+<script src="manuale-a.js"></script>
+<script src="manuale-b.js"></script>
+<script src="manuale-c.js"></script>
+<script src="gen.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ───────── dati ───────── */
+var TOPICS = {
+  num:{g:"Logica",l:"Logica numerica"},
+  ver:{g:"Logica",l:"Logica verbale e comprensione"},
+  ded:{g:"Logica",l:"Ragionamento deduttivo"},
+  att:{g:"Logica",l:"Attitudinale, situazioni di lavoro"},
+  fesr:{g:"Tecnica",l:"PR FESR Lazio e Lazio Innova"},
+  rdc:{g:"Tecnica",l:"Fondi UE e Reg. 2021/1060"},
+  aid:{g:"Tecnica",l:"Aiuti di Stato"},
+  sco:{g:"Tecnica",l:"Costi semplificati"},
+  ctl:{g:"Tecnica",l:"Controlli e rendicontazione"},
+  l241:{g:"Tecnica",l:"L. 241/1990 e DPR 445/2000"},
+  pa:{g:"Tecnica",l:"Trasparenza e anticorruzione"},
+  gdpr:{g:"Tecnica",l:"GDPR"},
+  inh:{g:"Tecnica",l:"Società in house e TUSP"},
+  xls:{g:"Tecnica",l:"Excel e Office"},
+  app:{g:"Tecnica",l:"Appalti pubblici"},
+  cal:{g:"Tecnica",l:"Calcoli tecnici: importi, soglie, date"},
+  cas:{g:"Tecnica",l:"Casi pratici di istruttoria e controllo"}
+};
+
+function hash(s){var h=5381,i;for(i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0}return (h>>>0).toString(36);}
+var BANK = window.QUESTIONS.map(function(r){return {id:hash(r[1]),t:r[0],q:r[1],o:r[2],e:r[3]};});
+
+var SCHEDE = [
+ {t:"PR FESR Lazio 2021-2027",b:[
+  "Dotazione complessiva: 1.817.286.580 €. Contributo UE 40% (726.914.632 €), quota nazionale e regionale 60% (1.090.371.948 €).",
+  "Approvazione: Decisione C(2022)7883 del 26/10/2022. Modifiche: C(2023)5956 del 30/08/2023 e C(2024)6747 del 26/09/2024.",
+  "Cinque priorità: 1 Europa più competitiva e intelligente; 2 più verde; 3 mobilità urbana sostenibile; 4 più sociale; 5 più vicina ai cittadini.",
+  "OP1 e OP2 concentrano circa il 91% delle risorse. RIS3: nove Aree di Specializzazione.",
+  "Priorità 5: sviluppo urbano integrato di Roma Capitale e dei Comuni di Frosinone, Latina, Rieti e Viterbo.",
+  "Revisione di medio termine (Reg. UE 2025/1914): nuova Priorità 2bis, Obiettivo Specifico 2.5, resilienza idrica, 83 milioni di euro. Benefici: prefinanziamento aggiuntivo una tantum del 20%, +10 punti di cofinanziamento UE, ammissibilità della spesa fino al 31/12/2030.",
+  "Il Lazio è regione più sviluppata. Si.Ge.Co.: sistema di gestione e controllo del programma."
+ ],s:[["Programma FESR sul sito LazioEuropa","https://www.lazioeuropa.it/pr-fesr/"],["Revisione PR FESR Lazio, FASI","https://fasi.eu/it/articoli/novita/29732-revisione-pr-fesr-lazio-2021-2027-priorita-resilienza-idrica.html"]]},
+ {t:"Reg. (UE) 2021/1060 (RDC)",b:[
+  "Disposizioni comuni per FESR, FSE+, Fondo di coesione, JTF, FEAMPA, AMIF, ISF, BMVI. Il FESR e il Fondo di coesione hanno il proprio regolamento, il 2021/1058; il FSE+ il 2021/1057.",
+  "Autorità del programma (art. 71): autorità di gestione e autorità di audit, che è un'autorità pubblica. Non c'è più l'autorità di certificazione: la funzione contabile può essere affidata a un organismo diverso dall'AdG (art. 72, par. 2).",
+  "Verifiche di gestione a cura dell'AdG (art. 74), con approccio basato sul rischio. Pagamento al beneficiario entro 80 giorni dalla domanda.",
+  "Ammissibilità della spesa: regole nazionali, salvo norme UE specifiche. Periodo: dalla presentazione del programma (o 1/1/2021) al 31/12/2029 (art. 63).",
+  "Disimpegno N+3 (art. 105): importi senza domanda di pagamento entro il 31 dicembre del terzo anno successivo all'impegno.",
+  "Pacchetto di affidabilità entro il 15 febbraio (art. 98): conti, dichiarazione di gestione, parere di audit annuale, relazione annuale di controllo.",
+  "Audit delle operazioni su campione rappresentativo e statistico (art. 79). Audit della Commissione fino a tre anni civili dopo l'accettazione dei conti.",
+  "Comitato di sorveglianza (artt. 38-40): approva metodologia e criteri di selezione. Condizioni abilitanti, DNSH e partenariato sono principi orizzontali. Emblema UE obbligatorio per Stati membri, AdG e beneficiari (art. 47)."
+ ],s:[["Testo del regolamento (RGS-MEF)","https://www.rgs.mef.gov.it/_Documenti/VERSIONE-I/attivita_istituzionali/attivit_trasversali/regis_per_le_politiche_di_coesione/riferimenti_normativi/Regolamento-UE-N.-1060-del-2021-Disposizioni-comuni-ai-fondi.pdf"]]},
+ {t:"Opzioni semplificate in materia di costi",b:[
+  "Art. 53: rimborso dei costi reali, costi unitari, somme forfettarie, tassi forfettari, combinazioni, finanziamenti non collegati ai costi.",
+  "Operazioni fino a 200.000 € di costo totale: contributo in forma di SCO, salvo aiuti di Stato (art. 53, par. 2).",
+  "Costi indiretti (art. 54): fino al 7% dei costi diretti ammissibili, oppure fino al 15% dei costi diretti di personale, senza calcolo; fino al 25% dei costi diretti con calcolo giustificato.",
+  "Art. 56: tasso forfettario fino al 40% dei costi diretti di personale per coprire gli altri costi ammissibili.",
+  "Costo orario standard del personale a tempo pieno: ultimo costo annuo lordo documentato diviso 1.720 ore.",
+  "Somma forfettaria: importo complessivo predeterminato. Costo unitario: importo per unità di misura. Tasso forfettario: percentuale su una categoria di costi."
+ ],s:[["Orientamenti UE sulle opzioni semplificate (EUR-Lex)","https://eur-lex.europa.eu/legal-content/IT/TXT/PDF/?uri=OJ:C_202407467"]]},
+ {t:"Aiuti di Stato",b:[
+  "Art. 107, par. 1, TFUE: risorse statali, vantaggio economico selettivo, impresa, distorsione della concorrenza, incidenza sugli scambi. L'aiuto può avere qualsiasi forma.",
+  "Art. 108, par. 3: notifica preventiva alla Commissione e divieto di concedere l'aiuto prima della decisione (standstill).",
+  "De minimis, Reg. (UE) 2023/2831: 300.000 € in tre anni (su base mobile) per impresa unica. Applicazione 1/1/2024 – 31/12/2030. Concessione quando sorge il diritto legale all'aiuto. Registro centrale pubblico dal 1/1/2026: caricamento entro 20 giorni lavorativi, conservazione 10 anni.",
+  "Esclusi dal de minimis generale: produzione primaria agricola, pesca e acquacoltura (regolamenti dedicati), attività connesse all'esportazione, preferenza per prodotti nazionali.",
+  "GBER, Reg. (UE) 651/2014: compatibilità per categorie di aiuti senza notifica. Si applica fino al 31/12/2026; regimi esentati coperti per altri sei mesi (art. 58, par. 4). La revisione è in corso.",
+  "Condizioni tipiche: effetto di incentivazione (lavori non avviati prima della domanda), intensità e soglie, esclusione di imprese in difficoltà e di chi ha un ordine di recupero pendente (Deggendorf).",
+  "PMI: media impresa sotto 250 occupati e fatturato fino a 50 milioni o bilancio fino a 43 milioni; piccola sotto 50 occupati e fino a 10 milioni; micro sotto 10 occupati e fino a 2 milioni.",
+  "RNA: Registro Nazionale degli Aiuti (art. 52 L. 234/2012), con COR e visure Aiuti e Deggendorf. Carta degli aiuti a finalità regionale 2022-2027."
+ ],s:[["Sintesi de minimis (EUR-Lex)","https://eur-lex.europa.eu/IT/legal-content/summary/de-minimis-rule-exemption-of-small-amounts-of-state-aid-from-notification-from-2024.html"],["Stato del GBER, Incentivimpresa","https://www.incentivimpresa.it/gber-scadenza-2026-nuovo-regolamento-aiuti-2027/"]]},
+ {t:"L. 241/1990 e DPR 445/2000",b:[
+  "Art. 1: economicità, efficacia, imparzialità, pubblicità, trasparenza. Art. 2: termine generale 30 giorni; fino a 90 con atti propri; fino a 180 nei casi eccezionali.",
+  "Artt. 4-6: unità organizzativa e responsabile del procedimento. Art. 6-bis: conflitto di interessi e obbligo di astensione. Art. 7: comunicazione di avvio. Art. 10-bis: preavviso di rigetto, 10 giorni per le osservazioni.",
+  "Art. 3: motivazione. Art. 12: criteri predeterminati per sovvenzioni e contributi. Artt. 14 e seguenti: conferenza di servizi. Art. 19: SCIA. Art. 20: silenzio-assenso.",
+  "Art. 21-quinquies: revoca. Art. 21-septies: nullità. Art. 21-octies: annullabilità. Art. 21-nonies: annullamento d'ufficio entro un termine ragionevole e comunque 6 mesi per i provvedimenti ampliativi (era 18, poi 12; riduzione a 6 mesi dalla L. 182/2025, in vigore dal 18/12/2025).",
+  "Artt. 22 e seguenti: accesso documentale, interesse diretto, concreto e attuale. Risposta in 30 giorni, il silenzio vale rigetto.",
+  "DPR 445/2000: dichiarazione sostitutiva di certificazione (art. 46) e di atto di notorietà (art. 47); controlli (art. 71); decadenza dai benefici (art. 75); sanzioni penali per dichiarazioni mendaci (art. 76)."
+ ],s:[]},
+ {t:"Trasparenza, anticorruzione, GDPR, società pubbliche",b:[
+  "D.Lgs. 33/2013: accesso civico semplice (omessa pubblicazione) e generalizzato (senza motivazione, con i limiti dell'art. 5-bis). Risposta entro 30 giorni.",
+  "L. 190/2012: RPCT. D.Lgs. 231/2001: responsabilità degli enti e MOG 231. D.Lgs. 24/2023: whistleblowing. DPR 62/2013: codice di comportamento.",
+  "D.Lgs. 165/2001: Testo unico del pubblico impiego; l'art. 35, comma 3, fissa i criteri di reclutamento (richiamato dall'avviso).",
+  "D.Lgs. 175/2016 (TUSP): in house con oltre l'80% del fatturato per i compiti affidati dagli enti soci e controllo analogo; reclutamento con trasparenza, pubblicità, imparzialità (art. 19); rapporti di lavoro di diritto privato.",
+  "GDPR: titolare determina finalità e mezzi; responsabile tratta per conto del titolare (Randstad per Lazio Innova); notifica del data breach entro 72 ore; sanzioni fino a 20 milioni o 4% del fatturato.",
+  "D.Lgs. 36/2023: Codice dei contratti pubblici, RUP come responsabile unico del progetto, affidamento diretto di servizi e forniture sotto 140.000 € (art. 50, c. 1, lett. b)."
+ ],s:[]},
+ {t:"Avviso Lazio Innova e regole della prova",b:[
+  "5 posti, tempo indeterminato, terza area professionale secondo livello CCNL Credito, RAL 37.000-38.000 €. Sedi nel Lazio, con possibilità di lavoro agile.",
+  "Preselezione: quesiti a risposta multipla, logico-attitudinali e prima valutazione delle competenze tecniche del profilo. Punteggio in centesimi, soglia 70/100. Il punteggio non entra nella graduatoria finale.",
+  "Colloquio davanti a commissione di 3 componenti: 20 punti motivazione, 40 esperienza, 20 attitudine verso il ruolo, 20 soft skills e competenze generali. Soglia 70/100.",
+  "Graduatoria valida 18 mesi. Mansioni: istruttoria, atti di concessione, verifica dei requisiti, controllo contabile e amministrativo delle rendicontazioni, supporto a certificazione e audit.",
+  "Convocazione: 1 dicembre 2026, filiale Randstad, piazzale Luigi Sturzo 15, Roma Eur. Documento di identità valido obbligatorio, nessuna variazione di orario, assenza equivale a rinuncia."
+ ],s:[["Avviso su Randstad PA","https://selezione.pa.randstad.it/dettaglio-offerta.php?record=9b7e3ac5f23e53fe94c6f943871fd585&mode=single"]]},
+ {t:"Strategia durante il test",b:[
+  "Dividi il tempo per quesito: con 1 minuto a domanda, salta quelle che superano i 90 secondi e torna dopo.",
+  "Se la convocazione non indica penalità per le risposte errate, rispondi a tutto. Se le indica, rispondi solo quando riesci a eliminare almeno due opzioni.",
+  "Nella logica verifica sempre il verso della relazione (necessario, sufficiente, tutti, alcuni, nessuno) prima di scegliere.",
+  "Nei quesiti numerici stima il risultato prima di calcolare: spesso elimina due opzioni su quattro.",
+  "Nei quesiti tecnici leggi bene date e soglie. Le trappole più comuni sono le cifre simili: 200.000 contro 300.000 € nel de minimis, 7 contro 15 contro 25% nei forfettari, 30 contro 60 contro 90 giorni."
+ ],s:[]}
+];
+
+/* ───────── persistenza ───────── */
+var KEY="lazio-innova-prese-v1", store={wrong:{},hist:[],seen:{},read:{}};
+try{var raw=localStorage.getItem(KEY); if(raw){var p=JSON.parse(raw); if(p&&p.wrong&&p.hist) store=p;}}catch(e){}
+if(!store.seen)store.seen={};
+if(!store.read)store.read={};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+
+/* ───────── util ───────── */
+function $(s,r){return (r||document).querySelector(s);}
+function el(tag,attrs,kids){
+  var n=document.createElement(tag),k;
+  if(attrs){for(k in attrs){if(attrs[k]===null||attrs[k]===undefined)continue;if(k==="class")n.className=attrs[k];else if(k==="text")n.textContent=attrs[k];else if(k==="html")n.innerHTML=attrs[k];else if(k.slice(0,2)==="on")n.addEventListener(k.slice(2),attrs[k]);else n.setAttribute(k,attrs[k]);}}
+  (kids||[]).forEach(function(c){if(c)n.appendChild(typeof c==="string"?document.createTextNode(c):c);});
+  return n;
+}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function fmt(sec){sec=Math.max(0,sec);var m=Math.floor(sec/60),s=sec%60;return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;}
+function pct(n){return (Math.round(n*10)/10).toString().replace(".",",");}
+var LETTERS=["A","B","C","D"];
+function topicCount(t){return BANK.filter(function(q){return q.t===t;}).length;}
+
+/* progressi: quesiti visti, selezione intelligente, generatori */
+var TOPIC_SEC={fesr:"prl",rdc:"coe",aid:"aid",sco:"sco",ctl:"ctl",l241:"l241",pa:"trasp",gdpr:"trasp",inh:"trasp",app:"trasp",xls:"xls",num:"logica",ver:"logica",ded:"logica",att:"logica",cal:"sco",cas:"ciclo"};
+function seenN(q){var s=store.seen[q.id];return s?s.n:0;}
+function markSeen(q){if(q.gen)return;var s=store.seen[q.id]||{n:0};s.n++;store.seen[q.id]=s;}
+function unseenCount(pool){return pool.filter(function(q){return !store.seen[q.id];}).length;}
+/* Circa un quarto dai quesiti sbagliati, poi i mai visti, poi i meno visti, con un po' di casualità dentro ogni livello. */
+function smartPick(pool,n){
+  n=Math.min(n,pool.length);
+  if(n<=0)return [];
+  var wr=shuffle(pool.filter(function(q){return store.wrong[q.id];}));
+  var rest=pool.filter(function(q){return !store.wrong[q.id];}).map(function(q){return {q:q,k:seenN(q)+Math.random()*0.9};}).sort(function(a,b){return a.k-b.k;}).map(function(x){return x.q;});
+  var nw=Math.min(wr.length,Math.round(n*0.25));
+  var out=wr.slice(0,nw).concat(rest.slice(0,n-nw));
+  if(out.length<n)out=out.concat(wr.slice(nw,nw+n-out.length));
+  return shuffle(out);
+}
+function gen(kind,n){return (window.GEN&&n>0)?window.GEN.batch(kind,n):[];}
+
+
+/* conto alla rovescia */
+(function(){
+  var target=new Date(2026,11,1,0,0,0), now=new Date();
+  var d=Math.ceil((target-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+  $("#days").textContent=d>=0?String(d):"0";
+})();
+
+/* ───────── tab ───────── */
+var TABS=[["sim","Simulazione"],["arg","Per argomento"],["man","Manuale"],["err","Errori"]];
+var cur="sim", run=null, timer=null;
+function renderTabs(){
+  var nav=$("#tabs"); nav.innerHTML="";
+  TABS.forEach(function(t){
+    var b=el("button",{role:"tab","aria-selected":String(cur===t[0]),text:t[1]+(t[0]==="err"?" ("+Object.keys(store.wrong).length+")":""),onclick:function(){stopTimer();run=null;cur=t[0];render();}});
+    nav.appendChild(b);
+  });
+}
+function render(){
+  renderTabs();
+  var v=$("#view"); v.innerHTML="";
+  if(run){ run.done?renderResult(v):renderRun(v); return; }
+  if(cur==="sim")renderSimHome(v);
+  else if(cur==="arg")renderTopics(v);
+  else if(cur==="man")renderManuale(v);
+  else renderErrors(v);
+}
+
+/* ───────── home simulazione ───────── */
+function renderSimHome(v){
+  var nSel=el("select",{id:"sim-n","aria-label":"Numero di quesiti"},[["30","30 quesiti, 30 minuti"],["40","40 quesiti, 40 minuti"],["60","60 quesiti, 60 minuti"],["80","80 quesiti, 80 minuti"]].map(function(o){return el("option",{value:o[0],text:o[1]});}));
+  nSel.value="40";
+  var pen=el("input",{type:"checkbox",id:"sim-pen"});
+  var mix=el("select",{id:"sim-mix","aria-label":"Composizione"},[["mix","Mista: 40% logica, 60% tecnica"],["log","Solo logica"],["tec","Solo tecnica"]].map(function(o){return el("option",{value:o[0],text:o[1]});}));
+  v.appendChild(el("div",{class:"card"},[
+    el("h2",{text:"Simulazione d'esame"}),
+    el("p",{text:"Un minuto per domanda, soglia di superamento 70/100. I quesiti si pescano dando la precedenza a quelli mai visti e a quelli sbagliati. In ogni simulazione ci sono anche quesiti numerici, deduttivi e di calcolo generati al momento, quindi diversi ogni volta. Si naviga liberamente tra le domande e si segnalano quelle da rivedere. La correzione arriva alla fine."}),
+    el("div",{class:"row"},[el("label",{class:"inline","for":"sim-n",text:"Durata"}),nSel,el("label",{class:"inline","for":"sim-mix",text:"Tipo"}),mix]),
+    el("div",{class:"row",style:"margin-top:12px"},[pen,el("label",{class:"inline","for":"sim-pen",text:"Penalità di 0,25 per ogni risposta errata"})]),
+    el("p",{class:"note",text:"La convocazione non indica penalità. Attivala per allenarti a non rispondere a caso."}),
+    el("div",{style:"margin-top:12px"},[el("button",{class:"btn",text:"Avvia simulazione",onclick:function(){
+      startSim(parseInt(nSel.value,10),mix.value,pen.checked);
+    }})])
+  ]));
+  var hist=store.hist.slice(-8).reverse();
+  var c=el("div",{class:"card"},[el("h2",{text:"Ultimi risultati"})]);
+  if(!hist.length)c.appendChild(el("div",{class:"empty",text:"Nessuna simulazione completata. Il primo risultato comparirà qui."}));
+  else{
+    var rows=hist.map(function(h){return el("tr",null,[el("td",{text:h.d}),el("td",{text:h.m}),el("td",{text:String(h.n)}),el("td",{text:pct(h.s)+"/100"}),el("td",null,[el("span",{class:"pill "+(h.s>=70?"good":"bad"),text:h.s>=70?"Superata":"Sotto soglia"})])]);});
+    c.appendChild(el("div",{class:"scroll"},[el("table",{class:"table"},[el("thead",null,[el("tr",null,[el("th",{text:"Data"}),el("th",{text:"Tipo"}),el("th",{text:"Quesiti"}),el("th",{text:"Punteggio"}),el("th",{text:"Esito"})])]),el("tbody",null,rows)])]));
+  }
+  v.appendChild(c);
+  var seenTot=BANK.filter(function(q){return store.seen[q.id];}).length;
+  var readN=MAN.filter(function(s){return store.read[s.id];}).length;
+  v.appendChild(el("div",{class:"card"},[
+    el("h2",{text:"I tuoi progressi"}),
+    el("p",{text:"Quesiti già visti: "+seenTot+" su "+BANK.length+". Da rivedere: "+Object.keys(store.wrong).length+". Sezioni del manuale lette: "+readN+" su "+MAN.length+"."}),
+    el("div",{class:"bar"},[el("i",{style:"width:"+Math.round(seenTot/BANK.length*100)+"%"})]),
+    el("p",{class:"note",text:"Simulazioni e sessioni per argomento danno la precedenza ai quesiti non ancora visti. I quesiti numerici, deduttivi e di calcolo generati al momento non si ripetono mai."}),
+    el("button",{class:"btn ghost sm",text:"Azzera i quesiti visti",onclick:function(){store.seen={};save();render();}})
+  ]));
+  v.appendChild(el("div",{class:"card"},[
+    el("h2",{text:"Salva e ripristina"}),
+    el("p",{class:"note",text:"I progressi restano nel browser di questo dispositivo. Esportali per portarli su un altro dispositivo o per farli analizzare."}),
+    el("div",{class:"row"},[
+      el("button",{class:"btn",text:"Esporta progressi",onclick:exportProgress}),
+      el("label",{class:"btn ghost",style:"cursor:pointer"},[el("span",{text:"Importa progressi"}),el("input",{type:"file",accept:"application/json,.json",style:"display:none",onchange:importProgress})])
+    ]),
+    el("p",{class:"note",id:"io-msg",role:"status",text:""}),
+    el("textarea",{id:"io-box",class:"field",rows:"4",readonly:"",style:"display:none;width:100%;font-family:var(--mono);font-size:.78rem","aria-label":"Progressi in formato JSON"}),
+    el("textarea",{id:"io-in",class:"field",rows:"3",placeholder:"Oppure incolla qui il testo dei progressi e tocca Ripristina dal testo","aria-label":"Testo dei progressi da ripristinare",style:"width:100%;margin-top:10px;font-family:var(--mono);font-size:.78rem"}),
+    el("button",{class:"btn ghost sm",text:"Ripristina dal testo",style:"margin-top:6px",onclick:function(){var t=document.getElementById("io-in").value;restoreFrom(t,"testo incollato");}}),
+    el("button",{class:"btn ghost sm",id:"io-copy",text:"Copia il testo",style:"display:none;margin-top:6px",onclick:function(){var t=document.getElementById("io-box");t.focus();t.select();try{document.execCommand("copy");ioMsg("Copiato. Incollalo nella chat.");}catch(e){ioMsg("Seleziona il testo e copialo a mano.");}}})
+  ]));
+}
+function ioMsg(t){var m=document.getElementById("io-msg");if(m)m.textContent=t;}
+function exportProgress(){
+  var payload={app:"lazio-innova-prese",v:1,exported:new Date().toISOString(),data:{wrong:store.wrong,hist:store.hist,seen:store.seen,read:store.read}};
+  var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  var box=document.getElementById("io-box"),cp=document.getElementById("io-copy");
+  if(box){box.value=JSON.stringify(payload);box.style.display="block";box.select&&0;}
+  if(cp)cp.style.display="inline-block";
+  var url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="progressi-lazio-innova-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1000);
+  ioMsg("Progressi esportati. Se il download non parte, usa il testo qui sotto.");
+}
+function restoreFrom(txt,origin){
+  try{
+    var p=JSON.parse(txt);
+    if(!p||p.app!=="lazio-innova-prese"||!p.data)throw new Error("il testo non è un salvataggio di questa app");
+    var d=p.data,obj=function(x){return x&&typeof x==="object"&&!Array.isArray(x)?x:{};};
+    store.wrong=obj(d.wrong);store.seen=obj(d.seen);store.read=obj(d.read);
+    store.hist=Array.isArray(d.hist)?d.hist:[];
+    save();render();
+    ioMsg("Progressi ripristinati da "+origin+(p.exported?" del "+p.exported.slice(0,10):"")+".");
+  }catch(err){ioMsg("Ripristino non riuscito: "+err.message+".");}
+}
+function importProgress(e){
+  var f=e.target.files&&e.target.files[0];
+  if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      restoreFrom(r.result,"file");
+    }catch(err){ioMsg("Import non riuscito: "+err.message+".");}
+    e.target.value="";
+  };
+  r.readAsText(f);
+}
+
+
+function startSim(n,mixType,penalty){
+  var logic=BANK.filter(function(q){return TOPICS[q.t].g==="Logica";});
+  var tech=BANK.filter(function(q){return TOPICS[q.t].g==="Tecnica";});
+  var nl=mixType==="log"?n:mixType==="tec"?0:Math.round(n*0.4), nt=n-nl;
+  var L=gen("logic",Math.round(nl*0.35)), T=gen("cal",Math.round(nt*0.12));
+  var picked=shuffle(smartPick(logic,nl-L.length).concat(L,T,smartPick(tech,nt-T.length)));
+  var label=mixType==="log"?"Logica":mixType==="tec"?"Tecnica":"Mista";
+  begin({mode:"sim",label:label,penalty:penalty,qs:picked,limit:picked.length*60});
+}
+
+/* ───────── per argomento ───────── */
+function topicSet(k){
+  var pool=BANK.filter(function(q){return q.t===k;});
+  var g=(k==="num"||k==="ded"||k==="cal")?k:null;
+  var G=g?gen(g,8):[];
+  return shuffle(smartPick(pool,20-G.length).concat(G));
+}
+function renderTopics(v){
+  v.appendChild(el("p",{class:"note",text:"Ogni sessione propone fino a 20 quesiti: prima quelli non ancora visti, più una parte di quelli sbagliati. Il numero accanto all'argomento indica nuovi su totali. La correzione è immediata dopo ogni risposta."}));
+  ["Logica","Tecnica"].forEach(function(g){
+    v.appendChild(el("div",{class:"group-title",text:g==="Logica"?"Logica":"Competenze tecniche del profilo"}));
+    var grid=el("div",{class:"grid"});
+    Object.keys(TOPICS).filter(function(k){return TOPICS[k].g===g;}).forEach(function(k){
+      var pool=BANK.filter(function(q){return q.t===k;});
+      grid.appendChild(el("button",{class:"topic",onclick:function(){begin({mode:"topic",label:TOPICS[k].l,qs:topicSet(k)});}},[el("span",{text:TOPICS[k].l}),el("small",{text:unseenCount(pool)+"/"+pool.length})]));
+    });
+    v.appendChild(grid);
+  });
+  v.appendChild(el("div",{class:"group-title",text:"Esercizi sempre nuovi, generati al momento"}));
+  var g2=el("div",{class:"grid"});
+  [["Calcolo numerico: percentuali, medie, proporzioni, serie","num",20],["Deduzioni: sillogismi, condizionali, negazioni","ded",15],["Calcoli tecnici: de minimis, GBER, SCO, date","cal",15]].forEach(function(x){
+    g2.appendChild(el("button",{class:"topic",onclick:function(){begin({mode:"topic",label:x[0].split(":")[0]+" (generato)",qs:gen(x[1],x[2])});}},[el("span",{text:x[0]}),el("small",{text:x[2]+" nuovi"})]));
+  });
+  v.appendChild(g2);
+  v.appendChild(el("div",{class:"group-title",text:"Tutto"}));
+  v.appendChild(el("button",{class:"topic",onclick:function(){begin({mode:"topic",label:"Quesiti misti",qs:smartPick(BANK,30)});}},[el("span",{text:"30 quesiti misti, con priorità ai nuovi"}),el("small",{text:unseenCount(BANK)+"/"+BANK.length})]));
+}
+
+/* ───────── errori ───────── */
+function renderErrors(v){
+  var ids=Object.keys(store.wrong);
+  var qs=BANK.filter(function(q){return store.wrong[q.id];});
+  var c=el("div",{class:"card"},[el("h2",{text:"Quesiti da rivedere"})]);
+  if(!qs.length){c.appendChild(el("div",{class:"empty",text:"Nessun errore registrato. I quesiti sbagliati compaiono qui e si tolgono quando rispondi correttamente."}));}
+  else{
+    c.appendChild(el("p",{text:qs.length+" quesiti sbagliati almeno una volta."}));
+    c.appendChild(el("div",{class:"row"},[
+      el("button",{class:"btn",text:"Ripassa gli errori",onclick:function(){begin({mode:"err",label:"Errori",qs:shuffle(qs)});}}),
+      el("button",{class:"btn ghost",text:"Azzera elenco",onclick:function(){store.wrong={};save();render();}})
+    ]));
+  }
+  v.appendChild(c);
+  void ids;
+}
+
+/* ───────── manuale ───────── */
+var MAN=(window.MANUALE||[]).slice();
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function norm(s){return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");}
+MAN.push({id:"schede",t:"16. Schede lampo e fonti ufficiali",topics:[],html:
+  '<p class="lead">Promemoria in poche righe per la sera prima. Ogni scheda indica le fonti ufficiali da consultare.</p>'+
+  SCHEDE.map(function(s){
+    return "<h3>"+esc(s.t)+"</h3><ul>"+s.b.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul>"+
+      (s.s.length?'<p class="note">Fonti: '+s.s.map(function(l){return '<a href="'+esc(l[1])+'" target="_blank" rel="noopener noreferrer">'+esc(l[0])+"</a>";}).join(" · ")+"</p>":"");
+  }).join("")});
+MAN.forEach(function(s){var d=document.createElement("div");d.innerHTML=s.html;s.text=(d.textContent||"").replace(/\s+/g," ").trim();s.low=norm(s.text);});
+var CHIP={sel:"Selezione",coe:"Coesione UE",ita:"Quadro italiano",prl:"PR FESR Lazio",lin:"Lazio Innova",ciclo:"Ciclo dell'avviso",spese:"Spese e rendiconto",aid:"Aiuti di Stato",sco:"Costi semplificati",ctl:"Controlli e audit",l241:"L. 241/1990",trasp:"Trasparenza e GDPR",xls:"Excel",logica:"Logica",glos:"Glossario",schede:"Schede lampo"};
+var PRACT_EXTRA={sco:["cal"],spese:["cal","cas"],ciclo:["cas"],ctl:["cas"],aid:["cal"]};
+var man={sec:"sel",q:""};
+function secById(id){for(var i=0;i<MAN.length;i++)if(MAN[i].id===id)return MAN[i];return null;}
+function shortT(s){return s.t.replace(/^\d+\.\s*/,"");}
+/* Prima si cerca la frase intera (es. «de minimis»); se non compare in nessuna sezione, si cercano le singole parole di almeno 3 lettere. */
+function qTerms(q){
+  var ph=norm(q).trim().replace(/\s+/g," ");
+  if(ph.length<2)return [];
+  if(MAN.some(function(s){return s.low.indexOf(ph)>=0;}))return [ph];
+  var ws=ph.split(" ").filter(function(w){return w.length>=3;});
+  return ws.length?ws:[ph];
+}
+function secScore(s,words){
+  var c=0,i,p,n;
+  for(i=0;i<words.length;i++){
+    n=0;p=s.low.indexOf(words[i]);
+    if(p<0)return 0;
+    while(p>=0){n++;p=s.low.indexOf(words[i],p+words[i].length);}
+    c+=n;
+  }
+  return c;
+}
+function snippet(s,words){
+  var p=s.low.indexOf(words[0]);if(p<0)p=0;
+  var a=Math.max(0,p-50),b=Math.min(s.text.length,p+words[0].length+90);
+  return (a>0?"…":"")+s.text.slice(a,b)+(b<s.text.length?"…":"");
+}
+function highlight(root,words){
+  var re=new RegExp(words.map(function(w){return w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}).join("|"),"g");
+  var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),nodes=[],n,first=null;
+  while((n=walker.nextNode()))nodes.push(n);
+  nodes.forEach(function(tn){
+    var txt=tn.nodeValue,nt=norm(txt),m,last=0,frag=null;
+    if(nt.length!==txt.length)return;
+    re.lastIndex=0;
+    while((m=re.exec(nt))){
+      if(!m[0].length){re.lastIndex++;continue;}
+      if(!frag)frag=document.createDocumentFragment();
+      frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+      var mk=document.createElement("mark");mk.textContent=txt.slice(m.index,m.index+m[0].length);frag.appendChild(mk);
+      if(!first)first=mk;
+      last=m.index+m[0].length;
+    }
+    if(frag){frag.appendChild(document.createTextNode(txt.slice(last)));tn.parentNode.replaceChild(frag,tn);}
+  });
+  return first;
+}
+function secBody(s,words){
+  var b=el("div",{class:"man",html:s.html});
+  [].forEach.call(b.querySelectorAll("table"),function(t){var w=el("div",{class:"scroll"});t.parentNode.insertBefore(w,t);w.appendChild(t);});
+  return {node:b,first:words&&words.length?highlight(b,words):null};
+}
+function practiceFor(s){
+  var tp=(s.topics||[]).concat(PRACT_EXTRA[s.id]||[]);
+  var pool=BANK.filter(function(q){return tp.indexOf(q.t)>=0;});
+  if(!pool.length)return null;
+  var G=[];
+  if(tp.indexOf("num")>=0)G=G.concat(gen("num",4));
+  if(tp.indexOf("ded")>=0)G=G.concat(gen("ded",3));
+  if(tp.indexOf("cal")>=0)G=G.concat(gen("cal",4));
+  return shuffle(smartPick(pool,15-G.length).concat(G));
+}
+/* finestra di consultazione sopra al quiz: lo stato del quiz resta intatto */
+function closeOverlay(){
+  var ov=$("#ov");if(!ov)return;
+  var o=ov._opener;ov.remove();document.body.style.overflow="";
+  if(o&&o.focus)o.focus();
+}
+function openManual(id,opener){
+  closeOverlay();
+  var s=secById(id);if(!s)return;
+  var ov=el("div",{class:"overlay",id:"ov",role:"dialog","aria-modal":"true","aria-label":s.t,onclick:function(e){if(e.target===ov)closeOverlay();}});
+  var close=el("button",{class:"btn ghost sm",text:"Chiudi",onclick:closeOverlay});
+  var sheet=el("div",{class:"sheet"},[el("div",{class:"sheet-top"},[el("strong",{text:s.t}),close]),secBody(s,[]).node]);
+  ov.appendChild(sheet);ov._opener=opener;
+  document.body.appendChild(ov);document.body.style.overflow="hidden";
+  close.focus();
+}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeOverlay();});
+function manualButton(topic,label){
+  var sid=TOPIC_SEC[topic],s=sid&&secById(sid);
+  if(!s)return null;
+  return el("button",{class:"btn ghost sm",text:label||("Rivedi nel manuale: "+shortT(s)),onclick:function(ev){openManual(sid,ev.currentTarget);}});
+}
+
+function renderManuale(v){
+  var prog=el("p",{class:"note"});
+  var inp=el("input",{type:"search",class:"field",placeholder:"Cerca nel manuale: de minimis, 1.720, N+3, 21-nonies","aria-label":"Cerca nel manuale",value:man.q});
+  var chips=el("div",{class:"chips",role:"group","aria-label":"Sezioni del manuale"});
+  var res=el("div"),body=el("div");
+  function drawProg(){
+    var n=MAN.filter(function(s){return store.read[s.id];}).length;
+    prog.textContent="Manuale di studio, "+MAN.length+" sezioni, aggiornato al 22 novembre 2026. Lette: "+n+" su "+MAN.length+".";
+  }
+  function drawChips(){
+    chips.innerHTML="";
+    MAN.forEach(function(s,i){
+      chips.appendChild(el("button",{class:"chip"+(store.read[s.id]?" read":""),"aria-current":String(man.sec===s.id),title:s.t,text:(i+1)+" "+(CHIP[s.id]||shortT(s)),onclick:function(){man.sec=s.id;drawChips();drawSection(true);}}));
+    });
+  }
+  function drawSection(scroll){
+    body.innerHTML="";
+    var s=secById(man.sec);if(!s)return;
+    var w=qTerms(inp.value),i=MAN.indexOf(s);
+    var sb=secBody(s,w);
+    var card=el("div",{class:"card"},[el("h2",{text:s.t}),sb.node]);
+    var pq=practiceFor(s);
+    var row=el("div",{class:"row",style:"margin-top:16px"},[
+      el("button",{class:"btn"+(store.read[s.id]?" ghost":""),text:store.read[s.id]?"Letta, tocca per togliere":"Segna come letta",onclick:function(){store.read[s.id]=!store.read[s.id];if(!store.read[s.id])delete store.read[s.id];save();drawProg();drawChips();drawSection(false);}}),
+      pq?el("button",{class:"btn ghost",text:"Esercitati su questa sezione",onclick:function(){var q2=practiceFor(s);begin({mode:"topic",label:"Esercizi: "+shortT(s),qs:q2});}}):null
+    ]);
+    card.appendChild(row);
+    card.appendChild(el("div",{class:"nav"},[
+      el("button",{class:"btn ghost",text:"Sezione precedente",disabled:i===0?"":null,onclick:function(){man.sec=MAN[i-1].id;drawChips();drawSection(true);}}),
+      el("button",{class:"btn ghost",text:"Sezione successiva",disabled:i===MAN.length-1?"":null,onclick:function(){man.sec=MAN[i+1].id;drawChips();drawSection(true);}})
+    ]));
+    [].forEach.call(card.querySelectorAll("button"),function(b){if(b.getAttribute("disabled")===null)b.removeAttribute("disabled");});
+    body.appendChild(card);
+    if(scroll){var tgt=sb.first||body;if(tgt.scrollIntoView)tgt.scrollIntoView({block:sb.first?"center":"start"});}
+  }
+  function update(){
+    var w=qTerms(inp.value);res.innerHTML="";
+    if(w.length){
+      var hits=MAN.map(function(s){return {s:s,c:secScore(s,w)};}).filter(function(h){return h.c>0;}).sort(function(a,b){return b.c-a.c;});
+      var term="«"+inp.value.trim()+"»";
+      res.appendChild(el("p",{class:"note",text:hits.length?hits.length+(hits.length===1?" sezione contiene ":" sezioni contengono ")+term+". Tocca un risultato per aprirlo con i termini evidenziati.":"Nessun risultato per "+term+"."}));
+      hits.forEach(function(h){
+        res.appendChild(el("button",{class:"hit",onclick:function(){man.sec=h.s.id;drawChips();drawSection(true);}},[el("strong",{text:shortT(h.s)+" ("+h.c+")"}),el("small",{text:snippet(h.s,w)})]));
+      });
+    }
+    man.q=inp.value;
+    drawSection(false);
+  }
+  inp.addEventListener("input",update);
+  v.appendChild(prog);
+  v.appendChild(el("div",{class:"man-tools"},[inp]));
+  v.appendChild(chips);v.appendChild(res);v.appendChild(body);
+  drawProg();drawChips();update();
+}
+
+/* ───────── motore quiz ───────── */
+function begin(cfg){
+  run={mode:cfg.mode,label:cfg.label,penalty:!!cfg.penalty,idx:0,done:false,
+    items:cfg.qs.map(function(q){return {q:q,order:shuffle([0,1,2,3]),sel:null,flag:false,shown:false};}),
+    limit:cfg.limit||0,endAt:cfg.limit?Date.now()+cfg.limit*1000:0};
+  if(run.limit){stopTimer();timer=setInterval(tick,500);}
+  render();
+}
+function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
+function tick(){
+  if(!run||run.done){stopTimer();return;}
+  var left=Math.round((run.endAt-Date.now())/1000);
+  var t=$("#timer"); if(t){t.textContent=fmt(left);t.classList.toggle("low",left<=300);}
+  if(left<=0)finish();
+}
+function renderRun(v){
+  var it=run.items[run.idx], q=it.q, n=run.items.length, sim=run.mode==="sim";
+  var head=el("div",{class:"qhead"},[
+    el("span",{text:run.label+" · "+(run.idx+1)+"/"+n}),
+    sim?el("span",{class:"timer",id:"timer",text:fmt(Math.round((run.endAt-Date.now())/1000))}):el("span",{class:"pill",text:TOPICS[q.t].l})
+  ]);
+  var card=el("div",{class:"card"},[head,el("div",{class:"bar"},[el("i",{style:"width:"+Math.round((run.idx+1)/n*100)+"%"})]),el("div",{class:"qtext",text:q.q})]);
+  var opts=el("div",{class:"opts",role:"group","aria-label":"Risposte"});
+  it.order.forEach(function(oi,pos){
+    var b=el("button",{class:"opt","aria-pressed":String(it.sel===oi),onclick:function(){answer(oi);}},[el("span",{class:"k",text:LETTERS[pos]}),el("span",{text:q.o[oi]})]);
+    if(!sim&&it.shown){b.disabled=true;if(oi===0)b.classList.add("ok");else if(it.sel===oi)b.classList.add("ko");}
+    opts.appendChild(b);
+  });
+  card.appendChild(opts);
+  if(!sim&&it.shown){
+    var ex=el("div",{class:"expl"},[el("strong",{text:it.sel===0?"Corretto. ":"Non è questa. "}),document.createTextNode(q.e)]);
+    var mb=manualButton(q.t);
+    if(mb)ex.appendChild(el("div",null,[mb]));
+    card.appendChild(ex);
+  }
+  var nav=el("div",{class:"nav"});
+  if(sim){
+    nav.appendChild(el("div",{class:"row"},[
+      el("button",{class:"btn ghost",text:"Indietro",disabled:run.idx===0?"":null,onclick:function(){go(run.idx-1);}}),
+      el("button",{class:"btn ghost",text:it.flag?"Togli segnalazione":"Segnala da rivedere",onclick:function(){it.flag=!it.flag;render();}}),
+      el("button",{class:"btn ghost",text:"Avanti",disabled:run.idx===n-1?"":null,onclick:function(){go(run.idx+1);}})
+    ]));
+    nav.appendChild(el("button",{class:"btn danger",text:"Consegna",onclick:function(){confirmFinish(card);}}));
+  }else{
+    nav.appendChild(el("button",{class:"btn ghost",text:"Esci",onclick:function(){stopTimer();run=null;render();}}));
+    nav.appendChild(el("button",{class:"btn",text:run.idx===n-1?"Vedi risultato":"Avanti",disabled:it.shown?null:"",onclick:function(){if(run.idx===n-1)finish();else go(run.idx+1);}}));
+  }
+  // disabled="" attribute removal when null
+  [].forEach.call(nav.querySelectorAll("button"),function(b){if(b.getAttribute("disabled")===null)b.removeAttribute("disabled");});
+  card.appendChild(nav);
+  v.appendChild(card);
+  if(sim){
+    var map=el("div",{class:"map",role:"group","aria-label":"Elenco quesiti"});
+    run.items.forEach(function(x,i){
+      var b=el("button",{text:String(i+1),"aria-label":"Vai al quesito "+(i+1),onclick:function(){go(i);}});
+      if(x.sel!==null)b.classList.add("done");
+      if(x.flag)b.classList.add("flag");
+      if(i===run.idx)b.classList.add("cur");
+      map.appendChild(b);
+    });
+    v.appendChild(map);
+    var un=run.items.filter(function(x){return x.sel===null;}).length;
+    v.appendChild(el("p",{class:"note",text:un+" senza risposta, "+run.items.filter(function(x){return x.flag;}).length+" segnalati."}));
+  }
+}
+function go(i){run.idx=Math.max(0,Math.min(run.items.length-1,i));render();}
+function answer(oi){
+  var it=run.items[run.idx];
+  if(run.mode==="sim"){it.sel=(it.sel===oi)?null:oi;render();return;}
+  if(it.shown)return;
+  it.sel=oi;it.shown=true;
+  if(!it.q.gen){
+    markSeen(it.q);
+    if(oi===0){delete store.wrong[it.q.id];}else{store.wrong[it.q.id]=(store.wrong[it.q.id]||0)+1;}
+  }
+  save();render();
+}
+function confirmFinish(card){
+  if($("#cf"))return;
+  var un=run.items.filter(function(x){return x.sel===null;}).length;
+  var box=el("div",{class:"expl",id:"cf",style:"border-left-color:var(--bad);background:var(--bad-soft)"},[
+    el("p",{text:un?("Hai "+un+" quesiti senza risposta. Consegnare adesso?"):"Consegnare la simulazione?"}),
+    el("div",{class:"row"},[el("button",{class:"btn danger",text:"Sì, consegna",onclick:finish}),el("button",{class:"btn ghost",text:"Continua",onclick:function(){box.remove();}})])
+  ]);
+  card.appendChild(box);
+}
+function finish(){
+  if(!run||run.done)return;
+  stopTimer(); run.done=true;
+  run.items.forEach(function(it){
+    var wasRight=it.sel===0;
+    if(run.mode==="sim"&&!it.q.gen){
+      if(it.sel!==null){ markSeen(it.q); if(wasRight)delete store.wrong[it.q.id]; else store.wrong[it.q.id]=(store.wrong[it.q.id]||0)+1; }
+    }
+  });
+  if(run.mode==="sim"){
+    var r=calc();
+    var now=new Date();
+    store.hist.push({d:now.getDate()+"/"+(now.getMonth()+1),m:run.label+(run.penalty?" −0,25":""),n:run.items.length,s:r.score});
+    if(store.hist.length>40)store.hist=store.hist.slice(-40);
+  }
+  save(); render();
+}
+function calc(){
+  var right=0,wrong=0,blank=0;
+  run.items.forEach(function(it){if(it.sel===null)blank++;else if(it.sel===0)right++;else wrong++;});
+  var pts=right-(run.penalty?wrong*0.25:0);
+  var score=Math.max(0,pts/run.items.length*100);
+  return {right:right,wrong:wrong,blank:blank,pts:pts,score:score};
+}
+
+/* ───────── risultato ───────── */
+function renderResult(v){
+  var n=run.items.length;
+  if(run.mode!=="sim"){
+    var ok=run.items.filter(function(i){return i.sel===0;}).length;
+    v.appendChild(el("div",{class:"card"},[el("h2",{text:run.label}),el("div",{class:"score",text:ok+"/"+n}),el("p",{text:"risposte corrette, "+pct(ok/n*100)+"%"}),
+      el("div",{class:"row"},[el("button",{class:"btn",text:"Torna all'elenco",onclick:function(){run=null;render();}})])]));
+    return;
+  }
+  var r=calc(), passed=r.score>=70;
+  var left=Math.max(0,Math.round((run.endAt-Date.now())/1000));
+  var c=el("div",{class:"card"},[
+    el("h2",{text:"Esito simulazione"}),
+    el("div",{class:"row",style:"align-items:baseline"},[el("div",{class:"score",text:pct(r.score)}),el("span",{text:"/100"}),el("span",{class:"pill "+(passed?"good":"bad"),text:passed?"Sopra la soglia di 70":"Sotto la soglia di 70"})]),
+    el("p",{text:r.right+" corrette, "+r.wrong+" errate, "+r.blank+" senza risposta"+(run.penalty?". Punti netti: "+pct(r.pts)+" su "+n+".":".")}),
+    el("p",{class:"note",text:"Tempo residuo alla consegna: "+fmt(left)+"."})
+  ]);
+  // per argomento
+  var by={};
+  run.items.forEach(function(it){var t=it.q.t;by[t]=by[t]||{n:0,ok:0};by[t].n++;if(it.sel===0)by[t].ok++;});
+  var rows=Object.keys(by).sort(function(a,b){return by[a].ok/by[a].n-by[b].ok/by[b].n;}).map(function(k){
+    var p=by[k].ok/by[k].n*100;
+    return el("tr",null,[el("td",{text:TOPICS[k].l}),el("td",{text:by[k].ok+"/"+by[k].n}),el("td",null,[el("span",{class:"pill "+(p>=70?"good":p>=50?"warn":"bad"),text:pct(p)+"%"})])]);
+  });
+  c.appendChild(el("h3",{text:"Per argomento, dal più debole"}));
+  c.appendChild(el("div",{class:"scroll"},[el("table",{class:"table"},[el("thead",null,[el("tr",null,[el("th",{text:"Argomento"}),el("th",{text:"Corrette"}),el("th",{text:"Resa"})])]),el("tbody",null,rows)])]));
+  var wrongItems=run.items.filter(function(i){return i.sel!==0;});
+  var weakSecs=[];
+  Object.keys(by).filter(function(k){return by[k].ok/by[k].n<0.7;}).sort(function(a,b){return by[a].ok/by[a].n-by[b].ok/by[b].n;}).forEach(function(k){var sid=TOPIC_SEC[k];if(sid&&weakSecs.indexOf(sid)<0&&weakSecs.length<4)weakSecs.push(sid);});
+  if(weakSecs.length){
+    c.appendChild(el("h3",{text:"Da ripassare nel manuale"}));
+    c.appendChild(el("div",{class:"row"},weakSecs.map(function(sid){return el("button",{class:"btn ghost sm",text:shortT(secById(sid)),onclick:function(ev){openManual(sid,ev.currentTarget);}});})));
+  }
+  c.appendChild(el("div",{class:"row",style:"margin-top:14px"},[
+    el("button",{class:"btn",text:"Nuova simulazione",onclick:function(){run=null;cur="sim";render();}}),
+    wrongItems.length?el("button",{class:"btn ghost",text:"Rifai i "+wrongItems.length+" quesiti non corretti",onclick:function(){begin({mode:"err",label:"Errori della simulazione",qs:shuffle(wrongItems.map(function(i){return i.q;}))});}}):null
+  ]));
+  v.appendChild(c);
+  v.appendChild(el("div",{class:"group-title",text:"Correzione dei quesiti non corretti"}));
+  if(!wrongItems.length)v.appendChild(el("div",{class:"empty",text:"Tutto corretto."}));
+  wrongItems.forEach(function(it){
+    var idx=run.items.indexOf(it)+1;
+    var det=el("details",{class:"rev"});
+    det.appendChild(el("summary",null,[el("span",{class:"pill "+(it.sel===null?"warn":"bad"),text:"#"+idx+(it.sel===null?" vuota":" errata")}),el("span",{text:it.q.q.length>110?it.q.q.slice(0,110)+"…":it.q.q})]));
+    var inn=el("div",{class:"in"},[
+      el("p",{style:"white-space:pre-line",text:it.q.q}),
+      el("p",null,[el("strong",{text:"Risposta corretta: "}),document.createTextNode(it.q.o[0])]),
+      it.sel!==null?el("p",null,[el("strong",{text:"La tua risposta: "}),document.createTextNode(it.q.o[it.sel])]):null,
+      el("div",{class:"expl"},[document.createTextNode(it.q.e),manualButton(it.q.t)?el("div",null,[manualButton(it.q.t)]):null])
+    ]);
+    det.appendChild(inn);
+    v.appendChild(det);
+  });
+}
+
+render();
+})();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}</script>
+</body>
+</html>
